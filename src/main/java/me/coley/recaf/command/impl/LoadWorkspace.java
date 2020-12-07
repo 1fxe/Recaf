@@ -1,6 +1,8 @@
 package me.coley.recaf.command.impl;
 
 import me.coley.recaf.command.completion.*;
+import me.coley.recaf.plugin.PluginsManager;
+import me.coley.recaf.plugin.api.ResourceInterceptorPlugin;
 import me.coley.recaf.util.IOUtil;
 import me.coley.recaf.util.LangUtil;
 import me.coley.recaf.util.ShortcutUtil;
@@ -12,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static me.coley.recaf.util.Log.*;
 
@@ -41,20 +44,27 @@ public class LoadWorkspace implements Callable<Workspace> {
 	public Workspace call() throws Exception {
 		status = LangUtil.translate("ui.load.resolve");
 		String name = input.getFileName().toString().toLowerCase();
-		String ext = IOUtil.getExtension(input);
+		AtomicReference<String> ext = new AtomicReference<>(IOUtil.getExtension(input));
 		// Handle symbolic links
 		int symLevel = 0;
 		if (ShortcutUtil.isPotentialValidLink(input)) {
 			input = Paths.get(new ShortcutUtil(input).getRealFilename());
 			name = input.getFileName().toString().toLowerCase();
-			ext = name.substring(name.lastIndexOf(".") + 1);
+			ext.set(name.substring(name.lastIndexOf(".") + 1));
 		}
 		while (Files.isSymbolicLink(input) && symLevel < 5) {
 			input = Files.readSymbolicLink(input);
 			symLevel++;
 		}
-		JavaResource resource = null;
-		switch(ext) {
+
+		final String resourceName = name;
+		final String resourceExt = ext.get();
+
+		PluginsManager.getInstance().ofType(ResourceInterceptorPlugin.class)
+				.forEach(plugin -> ext.set(plugin.onLoad(resourceName, resourceExt)));
+
+		JavaResource resource;
+		switch(ext.get()) {
 			case "class":
 				status = LangUtil.translate("ui.load.initialize.resource");
 				resource = new ClassResource(input);
@@ -70,7 +80,7 @@ public class LoadWorkspace implements Callable<Workspace> {
 			case "json":
 				status = LangUtil.translate("ui.load.initialize.workspace");
 				// Represents an already existing workspace, so we can parse and return that here
-				Workspace workspace = null;
+				Workspace workspace;
 				try {
 					workspace = WorkspaceIO.fromJson(input);
 				} catch(Exception ex) {
