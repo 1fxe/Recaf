@@ -31,11 +31,13 @@ public class SearchBar extends GridPane {
 	private static final double OFF_OPACITY = 0.4;
 	private final EnumSet<Searchable.SearchModifier> modifiers = EnumSet.noneOf(Searchable.SearchModifier.class);
 	private final TextField txtSearch = new TextField();
+	private final TextField txtReplace = new TextField();
 	private final Label lblIndex = new Label();
 	private final BorderPane host;
 	private final Searchable searchable;
 	private Searchable.SearchResults results;
 	private boolean isShowing;
+	private boolean isReplaceShowing;
 	private boolean isForward = true;
 
 	private SearchBar(BorderPane host, Searchable searchable) {
@@ -89,14 +91,41 @@ public class SearchBar extends GridPane {
 		// Some modifier buttons off by default
 		btnWord.getGraphic().setOpacity(OFF_OPACITY);
 		btnRegex.getGraphic().setOpacity(OFF_OPACITY);
+
+		Button btnReplace = new Button(Lang.get("search.replace.button"));
+		btnReplace.setOnAction(e -> {
+			if (results != null && results.hasResults()) {
+				results.result().replace(txtReplace.getText());
+				runSearch();
+			}
+		});
+
+		Button btnReplaceAll = new Button(Lang.get("search.replace-all.button"));
+		btnReplaceAll.setOnAction(e -> {
+			if (results != null && results.hasResults()) {
+				results.getAllResults().forEach(result -> {
+					result.replace(txtReplace.getText());
+					runSearch(); // The Start and End Positions change after replacing, so we have to search again
+				});
+			}
+		});
+
 		// Putting it together
-		int c = 0;
-		add(txtSearch, c++, 0);
-		add(btnDirToggle, c++, 0);
-		add(btnSensitivity, c++, 0);
-		add(btnWord, c++, 0);
-		add(btnRegex, c++, 0);
-		add(lblIndex, c++, 0);
+		int col = 0;
+		add(txtSearch, col++, 0);
+		add(btnDirToggle, col++, 0);
+		add(btnSensitivity, col++, 0);
+		add(btnWord, col++, 0);
+		add(btnRegex, col++, 0);
+		add(lblIndex, col++, 0);
+
+		col = 0;
+		add(txtReplace, col++, 1);
+		add(btnReplace, col++, 1);
+		add(btnReplaceAll, col++, 1);
+		isReplaceShowing = true;
+		toggleReplaceVisibility();
+
 		// Style
 		lblIndex.setStyle("-fx-padding: 2 2 2 10;");
 		getStyleClass().add("menu-bar");
@@ -115,6 +144,11 @@ public class SearchBar extends GridPane {
 		host.setOnKeyPressed(e -> {
 			if (Configs.keybinds().find.match(e)) {
 				toggleVisibility();
+			} else if (Configs.keybinds().replace.match(e)) {
+				if (!isShowing) {
+					toggleVisibility();
+				}
+				toggleReplaceVisibility();
 			} else if (oldPressHandler != null) {
 				oldPressHandler.handle(e);
 			}
@@ -128,6 +162,14 @@ public class SearchBar extends GridPane {
 			open();
 		}
 		isShowing = !isShowing;
+	}
+
+	private void toggleReplaceVisibility() {
+		getChildren().stream().filter(node -> GridPane.getRowIndex(node) == 1).forEach(node -> {
+			node.setVisible(!isReplaceShowing);
+			node.setManaged(!isReplaceShowing);
+		});
+		isReplaceShowing = !isReplaceShowing;
 	}
 
 	/**

@@ -31,6 +31,10 @@ public class KeybindConfig implements ConfigContainer {
 	@ConfigID("find")
 	public Binding find = newBind(CONTROL, F);
 
+	@Group("navigation")
+	@ConfigID("replace")
+	public Binding replace = newBind(CONTROL, SHIFT, R);
+
 	/**
 	 * Close current tab.
 	 */

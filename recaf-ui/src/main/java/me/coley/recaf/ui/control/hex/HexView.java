@@ -217,6 +217,11 @@ public class HexView extends BorderPane implements ToolSideTabbed, Searchable, C
 				selectRange(EditableHexLocation.ASCII, getStart(), getStop() - 1);
 				centerOffset(getStart());
 			}
+
+			@Override
+			public void replace(String replacement) {
+				selectRange(EditableHexLocation.ASCII, getStart(), getStop() - 1);
+			}
 		};
 	}
 

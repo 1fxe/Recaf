@@ -155,6 +155,13 @@ public interface Searchable {
 		 * Selects the result in the UI where it originates from.
 		 */
 		void select();
+
+		/**
+		 * Replaces text at given SearchResult position
+		 *
+		 * @param replacement text to replace at
+		 */
+		void replace(String replacement);
 	}
 
 	/**

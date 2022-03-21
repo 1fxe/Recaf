@@ -191,6 +191,10 @@ public class SyntaxArea extends CodeArea implements BracketUpdateListener, Probl
 				selectRange(getStart(), getStop());
 				showParagraphAtCenter(paragraph);
 			}
+
+			public void replace(String replacement) {
+				replaceText(getStart(), getStop(), replacement);
+			}
 		};
 	}
 

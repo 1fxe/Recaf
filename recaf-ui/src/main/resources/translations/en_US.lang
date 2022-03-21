@@ -213,6 +213,8 @@ search.numbermode=Number match mode
 search.refowner=Member owner
 search.refname=Member name
 search.refdesc=Member type descriptor
+search.replace.button=Replace
+search.replace-all.button=Replace All
 
 ## Help
 help.system=System
@@ -272,6 +274,7 @@ conf.binding=Keybinding
 conf.binding.navigation=Navigation
 conf.binding.navigation.closetab=Close tab
 conf.binding.navigation.find=Find
+conf.binding.navigation.replace=Replace
 conf.binding.navigation.fullscreen=Fullscreen
 conf.binding.navigation.quicknav=Quick navigation
 conf.binding.edit=Editing
